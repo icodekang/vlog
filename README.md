@@ -1,4 +1,6 @@
-# 一、Build And Install
+# vlog: c log library
+
+### 一、build and install
 ``` Shell
 $ mkdir build && cd build
 $ cmake ..

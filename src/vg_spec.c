@@ -451,7 +451,6 @@ static int vlog_spec_parse_print_fmt(vlog_spec_t * a_spec)
 	return 0;
 }
 
-/*******************************************************************************/
 void vlog_spec_del(vlog_spec_t * a_spec)
 {
 	vg_assert(a_spec,);

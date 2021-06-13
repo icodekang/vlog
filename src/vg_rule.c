@@ -851,8 +851,7 @@ vlog_rule_t *vlog_rule_new(char *line,
 		} else if (STRNCMP(file_path + 1, ==, "stderr", 6)) {
 			a_rule->output = vlog_rule_output_stderr;
 		} else {
-			vg_error
-			    ("[%s]the string after is not syslog, stdout or stderr", output);
+			vg_error("[%s]the string after is not syslog, stdout or stderr", output);
 			goto err;
 		}
 		break;
