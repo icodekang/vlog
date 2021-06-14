@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 {
 	int i, k;
 	int rc;
-	vlog_category_t *vg;
+	vlog_category_t *vlg;
 
 	if (argc != 2) {
 		printf("useage: test_longlog [count]\n");
@@ -29,8 +29,8 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	vg = vlog_get_category("my_cat");
-	if (!vg) {
+	vlg = vlog_get_category("my_cat");
+	if (!vlg) {
 		printf("get cat fail\n");
 		vlog_fini();
 		return -2;
@@ -41,13 +41,13 @@ int main(int argc, char** argv)
 		i = rand();
 		switch (i % 3) {
 		case 0:
-			vlog_info(vg, str32);
+			vlog_info(vlg, str32);
 			break;
 		case 1:
-			vlog_info(vg, str64);
+			vlog_info(vlg, str64);
 			break;
 		case 2:
-			vlog_info(vg, str16);
+			vlog_info(vlg, str16);
 			break;
 		}
 	}

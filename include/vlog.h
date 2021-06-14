@@ -257,12 +257,12 @@ typedef enum {
 	vlog_LEVEL_DEBUG, buf, buf_len)
 
 /* enabled macros */
-#define vlog_fatal_enabled(vg)  vlog_level_enabled(vg, vlog_LEVEL_FATAL)
-#define vlog_error_enabled(vg)  vlog_level_enabled(vg, vlog_LEVEL_ERROR)
-#define vlog_warn_enabled(vg)   vlog_level_enabled(vg, vlog_LEVEL_WARN)
-#define vlog_notice_enabled(vg) vlog_level_enabled(vg, vlog_LEVEL_NOTICE)
-#define vlog_info_enabled(vg)   vlog_level_enabled(vg, vlog_LEVEL_INFO)
-#define vlog_debug_enabled(vg)  vlog_level_enabled(vg, vlog_LEVEL_DEBUG)
+#define vlog_fatal_enabled(vlg)  vlog_level_enabled(vlg, vlog_LEVEL_FATAL)
+#define vlog_error_enabled(vlg)  vlog_level_enabled(vlg, vlog_LEVEL_ERROR)
+#define vlog_warn_enabled(vlg)   vlog_level_enabled(vlg, vlog_LEVEL_WARN)
+#define vlog_notice_enabled(vlg) vlog_level_enabled(vlg, vlog_LEVEL_NOTICE)
+#define vlog_info_enabled(vlg)   vlog_level_enabled(vlg, vlog_LEVEL_INFO)
+#define vlog_debug_enabled(vlg)  vlog_level_enabled(vlg, vlog_LEVEL_DEBUG)
 
 #ifdef __cplusplus
 }

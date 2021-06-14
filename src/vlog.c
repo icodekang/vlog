@@ -1,4 +1,4 @@
-#include "vg_fmacros.h"
+#include "vlg_fmacros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,20 +6,20 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "vg_conf.h"
-#include "vg_category_table.h"
-#include "vg_record_table.h"
-#include "vg_mdc.h"
-#include "vg_defs.h"
-#include "vg_rule.h"
-#include "vg_version.h"
+#include "vlg_conf.h"
+#include "vlg_category_table.h"
+#include "vlg_record_table.h"
+#include "vlg_mdc.h"
+#include "vlg_defs.h"
+#include "vlg_rule.h"
+#include "vlg_version.h"
 
 extern char *vlog_git_sha1;
 
 static pthread_rwlock_t vlog_env_lock = PTHREAD_RWLOCK_INITIALIZER;
 static pthread_key_t vlog_thread_key;
-static vg_hashtable_t *vlog_env_categories;
-static vg_hashtable_t *vlog_env_records;
+static vlg_hashtable_t *vlog_env_categories;
+static vlg_hashtable_t *vlog_env_records;
 static vlog_category_t *vlog_default_category;
 static size_t vlog_env_reload_conf_count;
 static int vlog_env_is_init = 0;
@@ -65,7 +65,7 @@ static int vlog_init_inner(const char *config)
 		/* clean up is done by OS when a thread call pthread_exit */
 		rc = pthread_key_create(&vlog_thread_key, (void (*) (void *)) vlog_thread_del);
 		if (rc) {
-			vg_error("pthread_key_create fail, rc[%d]", rc);
+			vlg_error("pthread_key_create fail, rc[%d]", rc);
 			goto err;
 		}
 
@@ -74,7 +74,7 @@ static int vlog_init_inner(const char *config)
 		 */
 		rc = atexit(vlog_clean_rest_thread);
 		if (rc) {
-			vg_error("atexit fail, rc[%d]", rc);
+			vlg_error("atexit fail, rc[%d]", rc);
 			goto err;
 		}
 		vlog_env_init_version++;
@@ -82,19 +82,19 @@ static int vlog_init_inner(const char *config)
 
 	vlog_env_conf = vlog_conf_new(config);
 	if (!vlog_env_conf) {
-		vg_error("vlog_conf_new[%s] fail", config);
+		vlg_error("vlog_conf_new[%s] fail", config);
 		goto err;
 	}
 
 	vlog_env_categories = vlog_category_table_new();
 	if (!vlog_env_categories) {
-		vg_error("vlog_category_table_new fail");
+		vlg_error("vlog_category_table_new fail");
 		goto err;
 	}
 
 	vlog_env_records = vlog_record_table_new();
 	if (!vlog_env_records) {
-		vg_error("vlog_record_table_new fail");
+		vlg_error("vlog_record_table_new fail");
 		goto err;
 	}
 
@@ -107,41 +107,41 @@ err:
 int vlog_init(const char *config)
 {
 	int rc;
-	vg_debug("------vlog_init start------");
-	vg_debug("------compile time[%s %s], version[%s]------", __DATE__, __TIME__, vlog_VERSION);
+	vlg_debug("------vlog_init start------");
+	vlg_debug("------compile time[%s %s], version[%s]------", __DATE__, __TIME__, vlog_VERSION);
 
 	rc = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return -1;
 	}
 
 	if (vlog_env_is_init) {
-		vg_error("already init, use vlog_reload pls");
+		vlg_error("already init, use vlog_reload pls");
 		goto err;
 	}
 
 
 	if (vlog_init_inner(config)) {
-		vg_error("vlog_init_inner[%s] fail", config);
+		vlg_error("vlog_init_inner[%s] fail", config);
 		goto err;
 	}
 
 	vlog_env_is_init = 1;
 	vlog_env_init_version++;
 
-	vg_debug("------vlog_init success end------");
+	vlg_debug("------vlog_init success end------");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return 0;
 err:
-	vg_error("------vlog_init fail end------");
+	vlg_error("------vlog_init fail end------");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return -1;
@@ -150,23 +150,23 @@ err:
 int dvlog_init(const char *config, const char *cname)
 {
 	int rc = 0;
-	vg_debug("------dvlog_init start------");
-	vg_debug("------compile time[%s %s], version[%s]------",
+	vlg_debug("------dvlog_init start------");
+	vlg_debug("------compile time[%s %s], version[%s]------",
 			__DATE__, __TIME__, vlog_VERSION);
 
 	rc = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return -1;
 	}
 
 	if (vlog_env_is_init) {
-		vg_error("already init, use vlog_reload pls");
+		vlg_error("already init, use vlog_reload pls");
 		goto err;
 	}
 
 	if (vlog_init_inner(config)) {
-		vg_error("vlog_init_inner[%s] fail", config);
+		vlg_error("vlog_init_inner[%s] fail", config);
 		goto err;
 	}
 
@@ -175,25 +175,25 @@ int dvlog_init(const char *config, const char *cname)
 				cname,
 				vlog_env_conf->rules);
 	if (!vlog_default_category) {
-		vg_error("vlog_category_table_fetch_category[%s] fail", cname);
+		vlg_error("vlog_category_table_fetch_category[%s] fail", cname);
 		goto err;
 	}
 
 	vlog_env_is_init = 1;
 	vlog_env_init_version++;
 
-	vg_debug("------dvlog_init success end------");
+	vlg_debug("------dvlog_init success end------");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return 0;
 err:
-	vg_error("------dvlog_init fail end------");
+	vlg_error("------dvlog_init fail end------");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return -1;
@@ -207,15 +207,15 @@ int vlog_reload(const char *config)
 	vlog_rule_t *a_rule;
 	int c_up = 0;
 
-	vg_debug("------vlog_reload start------");
+	vlg_debug("------vlog_reload start------");
 	rc = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return -1;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto quit;
 	}
 
@@ -238,17 +238,17 @@ int vlog_reload(const char *config)
 
 	new_conf = vlog_conf_new(config);
 	if (!new_conf) {
-		vg_error("vlog_conf_new fail");
+		vlg_error("vlog_conf_new fail");
 		goto err;
 	}
 
-	vg_arraylist_foreach(new_conf->rules, i, a_rule) {
+	vlg_arraylist_foreach(new_conf->rules, i, a_rule) {
 		vlog_rule_set_record(a_rule, vlog_env_records);
 	}
 
 	if (vlog_category_table_update_rules(vlog_env_categories, new_conf->rules)) {
 		c_up = 0;
-		vg_error("vlog_category_table_update fail");
+		vlg_error("vlog_category_table_update fail");
 		goto err;
 	} else {
 		c_up = 1;
@@ -259,30 +259,30 @@ int vlog_reload(const char *config)
 	if (c_up) vlog_category_table_commit_rules(vlog_env_categories);
 	vlog_conf_del(vlog_env_conf);
 	vlog_env_conf = new_conf;
-	vg_debug("------vlog_reload success, total init verison[%d] ------", vlog_env_init_version);
+	vlg_debug("------vlog_reload success, total init verison[%d] ------", vlog_env_init_version);
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return 0;
 err:
 	/* fail, roll back everything */
-	vg_warn("vlog_reload fail, use old conf file, still working");
+	vlg_warn("vlog_reload fail, use old conf file, still working");
 	if (new_conf) vlog_conf_del(new_conf);
 	if (c_up) vlog_category_table_rollback_rules(vlog_env_categories);
-	vg_error("------vlog_reload fail, total init version[%d] ------", vlog_env_init_version);
+	vlg_error("------vlog_reload fail, total init version[%d] ------", vlog_env_init_version);
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return -1;
 quit:
-	vg_debug("------vlog_reload do nothing------");
+	vlg_debug("------vlog_reload do nothing------");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return 0;
@@ -292,15 +292,15 @@ void vlog_fini(void)
 {
 	int rc = 0;
 
-	vg_debug("------vlog_fini start------");
+	vlg_debug("------vlog_fini start------");
 	rc = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("before finish, must vlog_init() or dvlog_init() first");
+		vlg_error("before finish, must vlog_init() or dvlog_init() first");
 		goto exit;
 	}
 
@@ -308,10 +308,10 @@ void vlog_fini(void)
 	vlog_env_is_init = 0;
 
 exit:
-	vg_debug("------vlog_fini end------");
+	vlg_debug("------vlog_fini end------");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return;
 	}
 	return;
@@ -322,16 +322,16 @@ vlog_category_t *vlog_get_category(const char *cname)
 	int rc = 0;
 	vlog_category_t *a_category = NULL;
 
-	vg_assert(cname, NULL);
-	vg_debug("------vlog_get_category[%s] start------", cname);
+	vlg_assert(cname, NULL);
+	vlg_debug("------vlog_get_category[%s] start------", cname);
 	rc = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return NULL;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		a_category = NULL;
 		goto err;
 	}
@@ -341,22 +341,22 @@ vlog_category_t *vlog_get_category(const char *cname)
 				cname,
 				vlog_env_conf->rules);
 	if (!a_category) {
-		vg_error("vlog_category_table_fetch_category[%s] fail", cname);
+		vlg_error("vlog_category_table_fetch_category[%s] fail", cname);
 		goto err;
 	}
 
-	vg_debug("------vlog_get_category[%s] success, end------ ", cname);
+	vlg_debug("------vlog_get_category[%s] success, end------ ", cname);
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return NULL;
 	}
 	return a_category;
 err:
-	vg_error("------vlog_get_category[%s] fail, end------ ", cname);
+	vlg_error("------vlog_get_category[%s] fail, end------ ", cname);
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return NULL;
 	}
 	return NULL;
@@ -365,17 +365,17 @@ err:
 int dvlog_set_category(const char *cname)
 {
 	int rc = 0;
-	vg_assert(cname, -1);
+	vlg_assert(cname, -1);
 
-	vg_debug("------dvlog_set_category[%s] start------", cname);
+	vlg_debug("------dvlog_set_category[%s] start------", cname);
 	rc = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return -1;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto err;
 	}
 
@@ -384,22 +384,22 @@ int dvlog_set_category(const char *cname)
 				cname,
 				vlog_env_conf->rules);
 	if (!vlog_default_category) {
-		vg_error("vlog_category_table_fetch_category[%s] fail", cname);
+		vlg_error("vlog_category_table_fetch_category[%s] fail", cname);
 		goto err;
 	}
 
-	vg_debug("------dvlog_set_category[%s] end, success------ ", cname);
+	vlg_debug("------dvlog_set_category[%s] end, success------ ", cname);
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return 0;
 err:
-	vg_error("------dvlog_set_category[%s] end, fail------ ", cname);
+	vlg_error("------dvlog_set_category[%s] end, fail------ ", cname);
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return -1;
@@ -413,14 +413,14 @@ err:
 				vlog_env_conf->buf_size_min, vlog_env_conf->buf_size_max, \
 				vlog_env_conf->time_cache_count); \
 		if (!a_thread) {  \
-			vg_error("vlog_thread_new fail");  \
+			vlg_error("vlog_thread_new fail");  \
 			goto fail_goto;  \
 		}  \
   \
 		rd = pthread_setspecific(vlog_thread_key, a_thread);  \
 		if (rd) {  \
 			vlog_thread_del(a_thread);  \
-			vg_error("pthread_setspecific fail, rd[%d]", rd);  \
+			vlg_error("pthread_setspecific fail, rd[%d]", rd);  \
 			goto fail_goto;  \
 		}  \
 	}  \
@@ -431,13 +431,13 @@ err:
 				vlog_env_conf->buf_size_min, \
 				vlog_env_conf->buf_size_max);  \
 		if (rd) {  \
-			vg_error("vlog_thread_resize_msg_buf fail, rd[%d]", rd);  \
+			vlg_error("vlog_thread_resize_msg_buf fail, rd[%d]", rd);  \
 			goto fail_goto;  \
 		}  \
   \
 		rd = vlog_thread_rebuild_event(a_thread, vlog_env_conf->time_cache_count);  \
 		if (rd) {  \
-			vg_error("vlog_thread_resize_msg_buf fail, rd[%d]", rd);  \
+			vlg_error("vlog_thread_resize_msg_buf fail, rd[%d]", rd);  \
 			goto fail_goto;  \
 		}  \
 		a_thread->init_version = vlog_env_init_version;  \
@@ -449,37 +449,37 @@ int vlog_put_mdc(const char *key, const char *value)
 	int rc = 0;
 	vlog_thread_t *a_thread;
 
-	vg_assert(key, -1);
-	vg_assert(value, -1);
+	vlg_assert(key, -1);
+	vlg_assert(value, -1);
 
 	rc = pthread_rwlock_rdlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return -1;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto err;
 	}
 
 	vlog_fetch_thread(a_thread, err);
 
 	if (vlog_mdc_put(a_thread->mdc, key, value)) {
-		vg_error("vlog_mdc_put fail, key[%s], value[%s]", key, value);
+		vlg_error("vlog_mdc_put fail, key[%s], value[%s]", key, value);
 		goto err;
 	}
 
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return 0;
 err:
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
 	return -1;
@@ -491,41 +491,41 @@ char *vlog_get_mdc(char *key)
 	char *value = NULL;
 	vlog_thread_t *a_thread;
 
-	vg_assert(key, NULL);
+	vlg_assert(key, NULL);
 
 	rc = pthread_rwlock_rdlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_rdlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_rdlock fail, rc[%d]", rc);
 		return NULL;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto err;
 	}
 
 	a_thread = pthread_getspecific(vlog_thread_key);
 	if (!a_thread) {
-		vg_error("thread not found, maybe not use vlog_put_mdc before");
+		vlg_error("thread not found, maybe not use vlog_put_mdc before");
 		goto err;
 	}
 
 	value = vlog_mdc_get(a_thread->mdc, key);
 	if (!value) {
-		vg_error("key[%s] not found in mdc", key);
+		vlg_error("key[%s] not found in mdc", key);
 		goto err;
 	}
 
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return NULL;
 	}
 	return value;
 err:
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return NULL;
 	}
 	return NULL;
@@ -536,22 +536,22 @@ void vlog_remove_mdc(char *key)
 	int rc = 0;
 	vlog_thread_t *a_thread;
 
-	vg_assert(key, );
+	vlg_assert(key, );
 
 	rc = pthread_rwlock_rdlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_rdlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_rdlock fail, rc[%d]", rc);
 		return;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
 	a_thread = pthread_getspecific(vlog_thread_key);
 	if (!a_thread) {
-		vg_error("thread not found, maybe not use vlog_put_mdc before");
+		vlg_error("thread not found, maybe not use vlog_put_mdc before");
 		goto exit;
 	}
 
@@ -560,7 +560,7 @@ void vlog_remove_mdc(char *key)
 exit:
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return;
 	}
 	return;
@@ -573,18 +573,18 @@ void vlog_clean_mdc(void)
 
 	rc = pthread_rwlock_rdlock(&vlog_env_lock);
 	if (rc) {;
-		vg_error("pthread_rwlock_rdlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_rdlock fail, rc[%d]", rc);
 		return;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
 	a_thread = pthread_getspecific(vlog_thread_key);
 	if (!a_thread) {
-		vg_error("thread not found, maybe not use vlog_put_mdc before");
+		vlg_error("thread not found, maybe not use vlog_put_mdc before");
 		goto exit;
 	}
 
@@ -593,7 +593,7 @@ void vlog_clean_mdc(void)
 exit:
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return;
 	}
 	return;
@@ -633,7 +633,7 @@ void vvlog(vlog_category_t * category,
 	pthread_rwlock_rdlock(&vlog_env_lock);
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
@@ -645,7 +645,7 @@ void vvlog(vlog_category_t * category,
 		format, args);
 
 	if (vlog_category_output(category, a_thread)) {
-		vg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
+		vlg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
 		goto exit;
 	}
 
@@ -662,7 +662,7 @@ reload:
 	pthread_rwlock_unlock(&vlog_env_lock);
 	/* will be wrlock, so after unlock */
 	if (vlog_reload((char *)-1)) {
-		vg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
+		vlg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
 	}
 	return;
 }
@@ -680,7 +680,7 @@ void hvlog(vlog_category_t *category,
 	pthread_rwlock_rdlock(&vlog_env_lock);
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
@@ -692,7 +692,7 @@ void hvlog(vlog_category_t *category,
 		buf, buflen);
 
 	if (vlog_category_output(category, a_thread)) {
-		vg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
+		vlg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
 		goto exit;
 	}
 
@@ -709,7 +709,7 @@ reload:
 	pthread_rwlock_unlock(&vlog_env_lock);
 	/* will be wrlock, so after unlock */
 	if (vlog_reload((char *)-1)) {
-		vg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
+		vlg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
 	}
 	return;
 }
@@ -727,13 +727,13 @@ void vdvlog(const char *file, size_t filelen,
 	pthread_rwlock_rdlock(&vlog_env_lock);
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
 	/* that's the differnce, must judge default_category in lock */
 	if (!vlog_default_category) {
-		vg_error("vlog_default_category is null,"
+		vlg_error("vlog_default_category is null,"
 			"dvlog_init() or dvlog_set_cateogry() is not called above");
 		goto exit;
 	}
@@ -746,7 +746,7 @@ void vdvlog(const char *file, size_t filelen,
 		format, args);
 
 	if (vlog_category_output(vlog_default_category, a_thread)) {
-		vg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
+		vlg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
 		goto exit;
 	}
 
@@ -763,7 +763,7 @@ reload:
 	pthread_rwlock_unlock(&vlog_env_lock);
 	/* will be wrlock, so after unlock */
 	if (vlog_reload((char *)-1)) {
-		vg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
+		vlg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
 	}
 	return;
 }
@@ -780,13 +780,13 @@ void hdvlog(const char *file, size_t filelen,
 	pthread_rwlock_rdlock(&vlog_env_lock);
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
 	/* that's the differnce, must judge default_category in lock */
 	if (!vlog_default_category) {
-		vg_error("vlog_default_category is null,"
+		vlg_error("vlog_default_category is null,"
 			"dvlog_init() or dvlog_set_cateogry() is not called above");
 		goto exit;
 	}
@@ -799,7 +799,7 @@ void hdvlog(const char *file, size_t filelen,
 		buf, buflen);
 
 	if (vlog_category_output(vlog_default_category, a_thread)) {
-		vg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
+		vlg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
 		goto exit;
 	}
 
@@ -816,7 +816,7 @@ reload:
 	pthread_rwlock_unlock(&vlog_env_lock);
 	/* will be wrlock, so after unlock */
 	if (vlog_reload((char *)-1)) {
-		vg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
+		vlg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
 	}
 	return;
 }
@@ -834,7 +834,7 @@ void vlog(vlog_category_t * category,
 	pthread_rwlock_rdlock(&vlog_env_lock);
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
@@ -845,7 +845,7 @@ void vlog(vlog_category_t * category,
 		file, filelen, func, funclen, line, level,
 		format, args);
 	if (vlog_category_output(category, a_thread)) {
-		vg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
+		vlg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
 		va_end(args);
 		goto exit;
 	}
@@ -864,7 +864,7 @@ reload:
 	pthread_rwlock_unlock(&vlog_env_lock);
 	/* will be wrlock, so after unlock */
 	if (vlog_reload((char *)-1)) {
-		vg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
+		vlg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
 	}
 	return;
 }
@@ -879,13 +879,13 @@ void dvlog(const char *file, size_t filelen, const char *func, size_t funclen, l
 	pthread_rwlock_rdlock(&vlog_env_lock);
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto exit;
 	}
 
 	/* that's the differnce, must judge default_category in lock */
 	if (!vlog_default_category) {
-		vg_error("vlog_default_category is null,"
+		vlg_error("vlog_default_category is null,"
 			"dvlog_init() or dvlog_set_cateogry() is not called above");
 		goto exit;
 	}
@@ -901,7 +901,7 @@ void dvlog(const char *file, size_t filelen, const char *func, size_t funclen, l
 		format, args);
 
 	if (vlog_category_output(vlog_default_category, a_thread)) {
-		vg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
+		vlg_error("vlog_output fail, srcfile[%s], srcline[%ld]", file, line);
 		va_end(args);
 		goto exit;
 	}
@@ -920,7 +920,7 @@ reload:
 	pthread_rwlock_unlock(&vlog_env_lock);
 	/* will be wrlock, so after unlock */
 	if (vlog_reload((char *)-1)) {
-		vg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
+		vlg_error("reach reload-conf-period but vlog_reload fail, vlog-chk-conf [file] see detail");
 	}
 	return;
 }
@@ -930,23 +930,23 @@ void vlog_profile(void)
 	int rc = 0;
 	rc = pthread_rwlock_rdlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
+		vlg_error("pthread_rwlock_wrlock fail, rc[%d]", rc);
 		return;
 	}
-	vg_warn("------vlog_profile start------ ");
-	vg_warn("is init:[%d]", vlog_env_is_init);
-	vg_warn("init version:[%d]", vlog_env_init_version);
-	vlog_conf_profile(vlog_env_conf, vg_WARN);
-	vlog_record_table_profile(vlog_env_records, vg_WARN);
-	vlog_category_table_profile(vlog_env_categories, vg_WARN);
+	vlg_warn("------vlog_profile start------ ");
+	vlg_warn("is init:[%d]", vlog_env_is_init);
+	vlg_warn("init version:[%d]", vlog_env_init_version);
+	vlog_conf_profile(vlog_env_conf, vlg_WARN);
+	vlog_record_table_profile(vlog_env_records, vlg_WARN);
+	vlog_category_table_profile(vlog_env_categories, vlg_WARN);
 	if (vlog_default_category) {
-		vg_warn("-default_category-");
-		vlog_category_profile(vlog_default_category, vg_WARN);
+		vlg_warn("-default_category-");
+		vlog_category_profile(vlog_default_category, vlg_WARN);
 	}
-	vg_warn("------vlog_profile end------ ");
+	vlg_warn("------vlog_profile end------ ");
 	rc = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rc) {
-		vg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
+		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return;
 	}
 	return;
@@ -960,42 +960,42 @@ int vlog_set_record(const char *rname, vlog_record_fn record_output)
 	vlog_record_t *a_record;
 	int i = 0;
 
-	vg_assert(rname, -1);
-	vg_assert(record_output, -1);
+	vlg_assert(rname, -1);
+	vlg_assert(record_output, -1);
 
 	rd = pthread_rwlock_wrlock(&vlog_env_lock);
 	if (rd) {
-		vg_error("pthread_rwlock_rdlock fail, rd[%d]", rd);
+		vlg_error("pthread_rwlock_rdlock fail, rd[%d]", rd);
 		return -1;
 	}
 
 	if (!vlog_env_is_init) {
-		vg_error("never call vlog_init() or dvlog_init() before");
+		vlg_error("never call vlog_init() or dvlog_init() before");
 		goto vlog_set_record_exit;
 	}
 
 	a_record = vlog_record_new(rname, record_output);
 	if (!a_record) {
 		rc = -1;
-		vg_error("vlog_record_new fail");
+		vlg_error("vlog_record_new fail");
 		goto vlog_set_record_exit;
 	}
 
-	rc = vg_hashtable_put(vlog_env_records, a_record->name, a_record);
+	rc = vlg_hashtable_put(vlog_env_records, a_record->name, a_record);
 	if (rc) {
 		vlog_record_del(a_record);
-		vg_error("vg_hashtable_put fail");
+		vlg_error("vlg_hashtable_put fail");
 		goto vlog_set_record_exit;
 	}
 
-	vg_arraylist_foreach(vlog_env_conf->rules, i, a_rule) {
+	vlg_arraylist_foreach(vlog_env_conf->rules, i, a_rule) {
 		vlog_rule_set_record(a_rule, vlog_env_records);
 	}
 
       vlog_set_record_exit:
 	rd = pthread_rwlock_unlock(&vlog_env_lock);
 	if (rd) {
-		vg_error("pthread_rwlock_unlock fail, rd=[%d]", rd);
+		vlg_error("pthread_rwlock_unlock fail, rd=[%d]", rd);
 		return -1;
 	}
 	return rc;

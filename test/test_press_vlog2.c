@@ -17,12 +17,12 @@ void * work(void *ptr)
 	long j = loop_count;
 	char category[20];
 	sprintf(category, "cat%ld", (long)ptr);
-	vlog_category_t *vg;
+	vlog_category_t *vlg;
 
-	vg = vlog_get_category(category);
+	vlg = vlog_get_category(category);
 	
 	while(j-- > 0) {
-		vlog_info(vg, "loglog");
+		vlog_info(vlg, "loglog");
 	}
 	return 0;
 }

@@ -31,7 +31,7 @@ enum {
 struct thread_info {    /* Used as argument to thread_start() */
 	pthread_t thread_id;    /* ID returned by pthread_create() */
 	int       thread_num;   /* Application-defined thread # */
-	vlog_category_t *vg;    /* The logger category struc address; (All threads will use the same category, so he same address) */
+	vlog_category_t *vlg;    /* The logger category struc address; (All threads will use the same category, so he same address) */
 	long long int loop;     /* Counter incremented to check the thread's health */
 };
 
@@ -63,8 +63,8 @@ void *myThread(void *arg)
 {
     struct thread_info *tinfo = arg;
 
-    tinfo->vg = vlog_get_category("thrd");
-	if (!tinfo->vg) {
+    tinfo->vlg = vlog_get_category("thrd");
+	if (!tinfo->vlg) {
 		printf("get thrd %d cat fail\n", tinfo->thread_num);
 	}
 	else
@@ -72,7 +72,7 @@ void *myThread(void *arg)
 		while(1)
 		{
 			usleep(THREAD_LOOP_DELAY);
-			vlog_info(tinfo->vg, "%d;%lld", tinfo->thread_num, tinfo->loop++);
+			vlog_info(tinfo->vlg, "%d;%lld", tinfo->thread_num, tinfo->loop++);
 		}
 	}
 
@@ -82,7 +82,7 @@ void *myThread(void *arg)
 int main(int argc, char** argv)
 {
 	int rc;
-	vlog_category_t *vg;
+	vlog_category_t *vlg;
 	vlog_category_t *mc;
 	vlog_category_t *hl;
 	int i = 0;
@@ -103,8 +103,8 @@ int main(int argc, char** argv)
 		return -2;
 	}
 
-	vg = vlog_get_category("main");
-	if (!vg) {
+	vlg = vlog_get_category("main");
+	if (!vlg) {
 		printf("main get cat fail\n");
 		vlog_fini();
 		return -3;
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 	/* Interrupt (ANSI).		<Ctrl-C> */
 	if (signal(SIGINT, intercept) == SIG_IGN )
 	{
-		vlog_fatal(vg, "Can't caught the signal SIGINT, Interrupt (ANSI)");
+		vlog_fatal(vlg, "Can't caught the signal SIGINT, Interrupt (ANSI)");
 		signal(SIGINT, SIG_IGN );
 		return -4;
 	}
@@ -138,10 +138,10 @@ int main(int argc, char** argv)
 	{
         tinfo[i].thread_num = i + 1;
         tinfo[i].loop = 0;
-		tinfo[i].vg = vg;
+		tinfo[i].vlg = vlg;
 		if(pthread_create(&tinfo[i].thread_id, NULL, myThread, &tinfo[i]) != 0)
 		{
-			vlog_fatal(vg, "Unable to start thread %d", i);
+			vlog_fatal(vlg, "Unable to start thread %d", i);
 			vlog_fini();
 			return(-5);
 		}
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
 	sleep(1);
 	for (i=0; i<NB_THREADS; i++)
 	{
-		vlog_info(vg, "Thread [%d], vlog_category:@%p", tinfo[i].thread_num, tinfo[i].vg);
+		vlog_info(vlg, "Thread [%d], vlog_category:@%p", tinfo[i].thread_num, tinfo[i].vlg);
 		vlog_fatal(mc, "Thread [%d], vlog_category:@%p", tinfo[i].thread_num, mc);
 		vlog_error(mc, "Thread [%d], vlog_category:@%p", tinfo[i].thread_num, mc);
 		vlog_warn(mc, "Thread [%d], vlog_category:@%p", tinfo[i].thread_num, mc);
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
 
 		sleep(1);
 		i++;
-		vlog_info(vg, "Running time: %02d:%02d:%02d", i/3600, (i/60)%60, i%60);
+		vlog_info(vlg, "Running time: %02d:%02d:%02d", i/3600, (i/60)%60, i%60);
 
 		/* Check configuration file update */
 		stat(CONFIG, &stat_1);
@@ -186,13 +186,13 @@ int main(int argc, char** argv)
 
 		if (reload)
 		{
-			vlog_info(vg, "Will reload configuration...");
+			vlog_info(vlg, "Will reload configuration...");
 			rc = vlog_reload(CONFIG);
 			if (rc) {
 				printf("main init failed\n");
 				return -6;
 			}
-			vlog_info(vg, "Configuration reloaded :)");
+			vlog_info(vlg, "Configuration reloaded :)");
 			stat(CONFIG, &stat_0);
 		}
 	}

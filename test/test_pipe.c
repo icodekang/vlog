@@ -5,7 +5,7 @@
 int main(int argc, char** argv)
 {
 	int rc;
-	vlog_category_t *vg;
+	vlog_category_t *vlg;
 
 	rc = vlog_init("test_pipe.conf");
 	if (rc) {
@@ -13,14 +13,14 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	vg = vlog_get_category("my_cat");
-	if (!vg) {
+	vlg = vlog_get_category("my_cat");
+	if (!vlg) {
 		printf("get cat fail\n");
 		vlog_fini();
 		return -2;
 	}
 
-	vlog_info(vg, "hello, vlog");
+	vlog_info(vlg, "hello, vlog");
 	vlog_fini();
 	return 0;
 }

@@ -10,38 +10,38 @@ int main(int argc, char** argv)
 {
 	int rc;
 	
-	vlog_category_t *vg;
+	vlog_category_t *vlg;
 
 	rc = vlog_init("test_init.conf");
 	if (rc) {
 		printf("init fail");
 		return -2;
 	}
-	vg = vlog_get_category("my_cat");
-	if (!vg) {
+	vlg = vlog_get_category("my_cat");
+	if (!vlg) {
 		printf("vlog_get_category fail\n");
 		vlog_fini();
 		return -1;
 	}
-	vlog_info(vg, "before update");
+	vlog_info(vlg, "before update");
 	sleep(1);
 	rc = vlog_reload("test_init.2.conf");
 	if (rc) {
 		printf("update fail\n");
 	}
-	vlog_info(vg, "after update");
+	vlog_info(vlg, "after update");
 	vlog_profile();
 	vlog_fini();
 
 	sleep(1);
 	vlog_init("test_init.conf");
-	vg = vlog_get_category("my_cat");
-	if (!vg) {
+	vlg = vlog_get_category("my_cat");
+	if (!vlg) {
 		printf("vlog_get_category fail\n");
 		vlog_fini();
 		return -1;
 	}
-	vlog_info(vg, "init again");
+	vlog_info(vlg, "init again");
 	vlog_fini();
 	
 	return 0;

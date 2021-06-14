@@ -7,14 +7,14 @@
 
 #include "vlog.h"
 
-static vlog_category_t *vg;
+static vlog_category_t *vlg;
 static long loop_count;
 
 void * work(void *ptr)
 {
 	long j = loop_count;
 	while(j-- > 0) {
-		vlog_info(vg, "loglog");
+		vlog_info(vlg, "loglog");
 	}
 	return 0;
 }
@@ -65,8 +65,8 @@ int main(int argc, char** argv)
 		return 2;
 	}
 
-	vg = vlog_get_category("my_cat");
-	if (!vg) {
+	vlg = vlog_get_category("my_cat");
+	if (!vlg) {
 		printf("get cat failed\n");
 		vlog_fini();
 		return 3;

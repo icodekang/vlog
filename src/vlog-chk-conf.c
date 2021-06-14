@@ -1,4 +1,4 @@
-#include "vg_fmacros.h"
+#include "vlg_fmacros.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 #include "vlog.h"
-#include "vg_version.h"
+#include "vlg_version.h"
 
 
 int main(int argc, char *argv[])
