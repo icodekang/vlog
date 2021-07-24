@@ -36,8 +36,8 @@ int vlg_profile_inner(int flag, const char *file, const long line, const char *f
 
 	if (!init_flag) {
 		init_flag = 1;
-		debug_log = getenv("vlog_PROFILE_DEBUG");
-		error_log = getenv("vlog_PROFILE_ERROR");
+		debug_log = getenv("VLOG_DEBUG");
+		error_log = getenv("VLOG_ERROR");
 	}
 
 	switch (flag) {

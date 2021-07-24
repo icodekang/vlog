@@ -264,6 +264,13 @@ typedef enum {
 #define vlog_info_enabled(vlg)   vlog_level_enabled(vlg, vlog_LEVEL_INFO)
 #define vlog_debug_enabled(vlg)  vlog_level_enabled(vlg, vlog_LEVEL_DEBUG)
 
+#define log_fatal(...)  dvlog_fatal(__VA_ARGS__)
+#define log_error(...)  dvlog_error(__VA_ARGS__)
+#define log_warn(...)   dvlog_warn(__VA_ARGS__)
+#define log_notice(...) dvlog_notice(__VA_ARGS__)
+#define log_info(...)   dvlog_info(__VA_ARGS__)
+#define log_debug(...)  dvlog_debug(__VA_ARGS__)
+
 #ifdef __cplusplus
 }
 #endif

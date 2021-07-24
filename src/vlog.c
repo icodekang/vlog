@@ -136,6 +136,7 @@ int vlog_init(const char *config)
 		vlg_error("pthread_rwlock_unlock fail, rc=[%d]", rc);
 		return -1;
 	}
+
 	return 0;
 err:
 	vlg_error("------vlog_init fail end------");
