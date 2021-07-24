@@ -14,7 +14,7 @@ target_include_directories(vlog PUBLIC "${PROJECT_SOURCE_DIR}/src")
 
 # install
 install(TARGETS vlog DESTINATION lib)
-install(FILES "${PROJECT_SOURCE_DIR}/include/vlog.h" DESTINATION include)
+install(FILES "${PROJECT_SOURCE_DIR}/src/vlog.h" DESTINATION include)
 
 # should compile test
 option(VLOG_TEST "test" OFF)
